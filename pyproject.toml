@@ -1,0 +1,26 @@
+[project]
+name = "asapseq_script_gen"
+version = "1.0.1"
+description = "Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin"
+authors = [
+    {name = "Miles Smith", email = "miles-smith@omrf.org"},
+]
+dependencies = [
+    "polars>=0.20.31",
+    "typer>=0.12.3",
+]
+requires-python = ">=3.10.14"
+readme = "README.md"
+license = {text = "GPL-3.0"}
+
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.4.8",
+]
+
+[project.scripts]
+asg = "asapseq_script_gen.create_count_scripts:app"
+
+[tool.pdm]
+distribution = false
