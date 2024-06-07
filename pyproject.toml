@@ -1,6 +1,6 @@
 [project]
 name = "asapseq_script_gen"
-version = "1.0.0"
+version = "1.1.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
