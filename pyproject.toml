@@ -1,6 +1,6 @@
 [project]
 name = "asapseq_script_gen"
-version = "1.0.1"
+version = "1.0.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "polars>=0.20.31",
     "typer>=0.12.3",
+    "rich>=13.7.1",
 ]
 requires-python = ">=3.10.14"
 readme = "README.md"

@@ -5,6 +5,9 @@ from typing import Annotated, Optional
 import polars as pl
 import typer
 from polars.exceptions import ColumnNotFoundError
+from rich import print as rprint
+
+from asapseq_script_gen import __version__
 
 # obviously, this only works for me
 # TODO: move this to a "defaults.toml" file?
@@ -27,6 +30,14 @@ app = typer.Typer(
     name="script gen",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
 )
+
+@app.callback(invoke_without_command=True)
+@app.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
+    """Prints the version of the package."""
+    if value:
+        rprint(f"[yellow]asapseq-script-gen[/] version: [bold blue]{__version__}[/]")
+        raise typer.Exit()
 
 
 def read_samplesheet(samplesheet_file: Path) -> pl.DataFrame:
@@ -184,6 +195,14 @@ def create_atac_count_script(
             help="Does the cellranger-atac module need to be loaded?",
         ),
     ] = True,
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            help="Print version number.",
+        ),
+    ] = False,
 ) -> None:
     """Batch create slurm scripts to generate count matrices for 10x Genomics scATAC-seq data"""
     ss_df = read_samplesheet(samplesheet)
@@ -242,6 +261,14 @@ def create_asap_o_matic_script(
         int,
         typer.Option("--cpus"),
     ] = 1,
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            help="Print version number.",
+        ),
+    ] = False,
 ):
     """Batch create slurm scripts to concatenate and rearrange ASAP-seq sequencing
     data using asap-o-matic.
@@ -299,6 +326,14 @@ def create_salmon_count_script(
         int,
         typer.Option("--cpus", "-c", help="Amount of cpus to use for each slurm job"),
     ] = 8,
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version",
+            callback=version_callback,
+            help="Print version number.",
+        ),
+    ] = False,
 ):
     """Batch create slurm scripts to count ASAP-seq protein data with salmon alevin"""
     ss_df = read_samplesheet(samplesheet)

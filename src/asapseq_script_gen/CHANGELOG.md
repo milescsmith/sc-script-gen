@@ -1,12 +1,5 @@
 # CHANGELOG
 
-# [1.0.1] - 2024-06-07
-
-## Changed
-
-- Removed the `logger` submodule - added by force of habit
-
-
 # [1.0.0] - 2024-06-07
 
 ## Added
