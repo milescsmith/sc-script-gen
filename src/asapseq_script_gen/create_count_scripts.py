@@ -17,6 +17,7 @@ GENOMIC_REFERENCE_PATH = "/Volumes/shared-refs/cellranger/refdata-cellranger-arc
 
 # TODO: More feedback
 
+
 class Conjugation(str, Enum):
     TotalSeqA = "TotalSeqA"
     TotalSeqB = "TotalSeqB"
@@ -31,6 +32,7 @@ app = typer.Typer(
     name="script gen",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
 )
+
 
 @app.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
@@ -221,28 +223,18 @@ def create_atac_count_script(
     for i in samples:
         sample_fastq_path = fastq_path.joinpath(i)
 
-        script_text = (
-            f"{
-                create_script_header(
-                    sample=i,
-                    jobtype='count',
-                    mem=mem,
-                    cpus=cpus
-                )
-            }"
-            f"{module_line}"
-            f"{
-                create_atac_count_script_body(
-                    sample=i,
-                    fastq_path=sample_fastq_path,
-                    reference_path=reference_path,
-                    job_interval=job_interval,
-                    max_num_jobs=max_num_jobs,
-                    mem_per_core=mem_per_core,
-                    job_template_path=job_template_path
-                )
-            }"
+        part1 = create_script_header(sample=i, jobtype="count", mem=mem, cpus=cpus)
+        part2 = create_atac_count_script_body(
+            sample=i,
+            fastq_path=sample_fastq_path,
+            reference_path=reference_path,
+            job_interval=job_interval,
+            max_num_jobs=max_num_jobs,
+            mem_per_core=mem_per_core,
+            job_template_path=job_template_path,
         )
+        script_text = part1 + module_line + part2
+
         outfile = scripts_out_folder.joinpath(f"{i}_atac_count.job")
         with outfile.open("w") as sf:
             sf.writelines(script_text)
@@ -292,27 +284,17 @@ def create_asap_o_matic_script(
 
     for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
         sample_fastq_path = fastq_path.joinpath(i["Sample_ID"])
-        script_text = (
-            f"{
-                create_script_header(
-                    sample=i['Sample_ID'],
-                    jobtype="count",
-                    mem=mem,
-                    cpus=cpus
-                )
-            }"
-            f"{
-                create_kite_script_body(
-                    sample=i['Sample_Project'],
-                    fastq_path=sample_fastq_path,
-                    sample_id=i['Sample_ID'],
-                    demuxer=demuxer.value,
-                    conjugation=conjugation.value,
-                    num_cores=num_cores,
-                    r2_reverse_complement=r2_reverse_complement
-                )
-            }"
+        part1 = create_script_header(sample=i["Sample_ID"], jobtype="count", mem=mem, cpus=cpus)
+        part2 = create_kite_script_body(
+            sample=i["Sample_Project"],
+            fastq_path=sample_fastq_path,
+            sample_id=i["Sample_ID"],
+            demuxer=demuxer.value,
+            conjugation=conjugation.value,
+            num_cores=num_cores,
+            r2_reverse_complement=r2_reverse_complement,
         )
+        script_text = part1 + part2
         outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_atac_count.job")
         with outfile.open("w") as sf:
             sf.writelines(script_text)
@@ -362,26 +344,17 @@ def create_salmon_count_script(
         raise ColumnNotFoundError(msg)
 
     for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
-        script_text = (
-            f"{
-                create_script_header(
-                    sample=i['Sample_ID'],
-                    jobtype='alevin',
-                    mem=mem,
-                    cpus=cpus
-                )
-            }"
-            f"{
-                create_salmon_script_body(
-                    sample=i['Sample_Project'],
-                    fastq_path=fastq_path,
-                    sample_id=i['Sample_ID'],
-                    results=results_path,
-                    index=index_path,
-                    num_cores=cpus,
-                )
-            }"
+        part1 = create_script_header(sample=i["Sample_ID"], jobtype="alevin", mem=mem, cpus=cpus)
+        part2 = create_salmon_script_body(
+            sample=i["Sample_Project"],
+            fastq_path=fastq_path,
+            sample_id=i["Sample_ID"],
+            results=results_path,
+            index=index_path,
+            num_cores=cpus,
         )
+
+        script_text = part1 + part2
         outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_salmon_count.job")
         with outfile.open("w") as sf:
             sf.writelines(script_text)

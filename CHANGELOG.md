@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [1.1.1] - 2024-06-07
+
+## Fix
+
+- Hotfix for "unterminated string literal"
+
 # [1.1.0] - 2024-06-07
 
 ## Changed
@@ -18,5 +24,6 @@
 
 - Everything
 
-[1.0.0]: https://github.com/milescsmith/asap-script-gen/compare/1.0.0..1.0.1
+[1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.0..1.1.1
+[1.1.0]: https://github.com/milescsmith/asap-script-gen/compare/1.0.0..1.1.0
 [1.0.0]: https://github.com/milescsmith/asap-script-gen/releases/tag/1.0.0
