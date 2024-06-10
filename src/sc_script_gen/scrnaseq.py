@@ -219,24 +219,24 @@ def create_five_prime_script(
     ],
     fastq_path: Annotated[Path, typer.Argument(help="Path to where the FASTQs are stored")],
     gex_index_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option("--gex_index", help="Path to the salmon index of the CITE-seq barcodes"),
-    ] = None,
+    ] = GEX_REFERENCE_PATH,
     vdj_index_path: Annotated[
-        Optional[Path],
+        Path,
         typer.Option("--vdj_index", help="Path to the salmon index of the CITE-seq barcodes"),
-    ] = None,
+    ] = VDJ_REFERENCE_PATH,
     feat_index_ref: Annotated[
-        Optional[Path],
+        Path,
         typer.Option("--feat_ref", help="Path to the salmon index of the CITE-seq barcodes"),
-    ] = None,
+    ] = FEAT_REFERENCE_PATH,
     kit_chemistry: Annotated[
         Optional[Chemistry], typer.Option("--chem", help="10x kit chemistry. Currently, only 'SC5PHT' is supported")
     ] = Chemistry.SC5PHT,
     job_interval: Annotated[
         int,
         typer.Option("--interval"),
-    ] = 5,
+    ] = 2000,
     max_num_jobs: Annotated[
         int,
         typer.Option("--max_jobs"),
@@ -248,7 +248,7 @@ def create_five_prime_script(
     mem: Annotated[
         int,
         typer.Option("--mem", "-m", help="Amount of memory to use for each slurm job"),
-    ] = 32,
+    ] = 64,
     cpus: Annotated[
         int,
         typer.Option("--cpus", "-c", help="Amount of cpus to use for each slurm job"),
@@ -300,7 +300,7 @@ def create_five_prime_script(
         part2 = create_multi_samplesheet(
             sample=k,
             fastq_path=fastq_path.joinpath(k),
-            output=scripts_out_folder.joinpath(f"{k}_multi_samplesheet.csv"),
+            output=scripts_out_folder.joinpath(f"{k}_multi_samplesheet.csv").absolute(),
             create_bam=False,
             expected_cells=2000,
             include_introns=True,
@@ -316,7 +316,7 @@ def create_five_prime_script(
             tcr=tcr_libraries_present,
             use_tcr_lower=libraries[k]["tcr"],
             feat=feat_libraries_present,
-            use_feat=libraries[k]["feat"] if libraries[k]["feat"] else libraries[k]["prot"],
+            use_feat=libraries[k]["feat"],
         )
         part3 = create_5_prime_multi_body(
             sample=k,

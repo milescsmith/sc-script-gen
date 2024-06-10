@@ -1,5 +1,18 @@
 # CHANGELOG
 
+
+# [2.0.1] - 2024-06-10
+
+## Changed
+
+- `job_interval` now defaults to the proper 2000 ms, not 5
+- `mem` now defaults to 64
+
+## Fixed
+
+- multi_samplesheet is defined using an absolute path now
+- gex/vdj/feat_indices now actually use the constant defined at the top of the module and do not default to `None`
+
 # [2.0.0] - 2024-06-10
 
 ## Added
@@ -36,7 +49,8 @@
 
 - Everything
 
-[1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.1..2.0.0
+[2.0.1]: https://github.com/milescsmith/asap-script-gen/compare/2.0.0..2.0.1
+[2.0.0]: https://github.com/milescsmith/asap-script-gen/compare/1.1.1..2.0.0
 [1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.0..1.1.1
 [1.1.0]: https://github.com/milescsmith/asap-script-gen/compare/1.0.0..1.1.0
 [1.0.0]: https://github.com/milescsmith/asap-script-gen/releases/tag/1.0.0
