@@ -1,5 +1,17 @@
 # CHANGELOG
 
+# [2.0.0] - 2024-06-10
+
+## Added
+
+- Now writes scripts for Single Cell Immune Profiling (i.e. 5' assays)
+
+## Changed
+
+- Renamed module
+- Renamed `create_count_scripts` submodule to `asapseq`
+- Moved some shared functions to `utils` submodule
+
 # [1.1.1] - 2024-06-07
 
 ## Fix
@@ -24,6 +36,7 @@
 
 - Everything
 
+[1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.1..2.0.0
 [1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.0..1.1.1
 [1.1.0]: https://github.com/milescsmith/asap-script-gen/compare/1.0.0..1.1.0
 [1.0.0]: https://github.com/milescsmith/asap-script-gen/releases/tag/1.0.0

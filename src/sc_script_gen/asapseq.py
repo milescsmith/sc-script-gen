@@ -2,17 +2,16 @@ from enum import Enum
 from pathlib import Path
 from typing import Annotated, Optional
 
-import polars as pl
 import typer
 from polars.exceptions import ColumnNotFoundError
 from rich import print as rprint
 
-from asapseq_script_gen import __version__
+from sc_script_gen import __version__
+from sc_script_gen.utils import JOB_MANAGER_TEMPLATE_PATH, create_script_header, read_samplesheet
 
 # obviously, this only works for me
 # TODO: move this to a "defaults.toml" file?
-JOB_MANAGER_TEMPLATE_PATH = "/Volumes/guth_aci_informatics/software/slurm.template"
-CITESEQ_REFERENCE_PATH = "/Volumes/guth_aci_informatics/references/miscellaneous/salmon_totalseq_b_asapseq"
+CITESEQ_INDEX_PATH = "/Volumes/guth_aci_informatics/references/miscellaneous/salmon_totalseq_b_asapseq"
 GENOMIC_REFERENCE_PATH = "/Volumes/shared-refs/cellranger/refdata-cellranger-arc-GRCh38-2020-A-2.0.0/"
 
 # TODO: More feedback
@@ -28,13 +27,13 @@ class Demuxer(str, Enum):
     bcl_convert = "bcl-convert"
 
 
-app = typer.Typer(
-    name="script gen",
+asapseq = typer.Typer(
+    name="ASAPseq script generator",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
 )
 
 
-@app.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@asapseq.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
     """Prints the version of the package."""
     if value:
@@ -42,50 +41,15 @@ def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # 
         raise typer.Exit()
 
 
-def read_samplesheet(samplesheet_file: Path) -> pl.DataFrame:
-    """This assumes we're using a bcl-convert style samplesheet"""
-    with samplesheet_file.open("r") as s:
-        n = 1
-        while "[BCLConvert_Data]" not in s.readline():
-            n += 1
-
-    return pl.read_csv(samplesheet_file, skip_rows=n)
-
-
-def create_script_header(
-    sample: str,
-    jobtype: str | None = None,
-    mem: int = 32,
-    cpus: int = 1,
-):
-    """Generate a standard slurm job file header"""
-    return (
-        f"#! /bin/bash -l\n\n"
-        f"#SBATCH -J {sample}{'_' + jobtype if jobtype else ''}\n"
-        f"#SBATCH -o {sample}{'_' + jobtype if jobtype else ''}.log\n"
-        f"#SBATCH --mail-user=None\n"
-        f"#SBATCH --mail-type=END,FAIL\n"
-        f"#SBATCH --mem={mem}G\n"
-        f"#SBATCH --partition=serial\n"
-        f"#SBATCH --nodes=1\n"
-        f"#SBATCH --cpus-per-task={cpus}\n"
-    )
-
-
 def create_atac_count_script_body(
     sample: str,
     fastq_path: Path,
     reference_path: Path | None = None,
-    job_interval: int = 5,
+    job_interval: int = 2000,
     max_num_jobs: int = 8,
     mem_per_core: int = 8,
     job_template_path: str | None = None,
 ):
-    if job_template_path is None:
-        job_template_path = JOB_MANAGER_TEMPLATE_PATH
-    if reference_path is None:
-        reference_path = GENOMIC_REFERENCE_PATH
-
     return (
         f"cellranger-atac \\\n"
         f"\tcount \\\n"
@@ -110,16 +74,7 @@ def create_kite_script_body(
     num_cores: int = 8,
     r2_reverse_complement: bool = True,
 ) -> str:
-    asap_o_matic_script = (
-        "asap-o-matic \\\n"
-        f"\t--fastqs /s/guth-aci/ARA08/data/raw/fastqs/asapseq_set_2/{sample} \\\n"
-        f"\t--sample {sample_id if sample_id else sample + '_prot'} \\\n"
-        f"\t--id {sample_id if sample_id else sample + '_prot'} \\\n"
-        f"\t--fastq_source {demuxer} \\\n"
-        f"\t--conjugation {conjugation} \\\n"
-        f"\t--outdir {fastq_path.joinpath(sample)} \\\n"
-        f"\t--cores {num_cores}"
-    )
+    asap_o_matic_script = f"asap-o-matic \\\n\t--fastqs /s/guth-aci/ARA08/data/raw/fastqs/asapseq_set_2/{sample} \\\n\t--sample {sample_id or f'{sample}_prot'} \\\n\t--id {sample_id or f'{sample}_prot'} \\\n\t--fastq_source {demuxer} \\\n\t--conjugation {conjugation} \\\n\t--outdir {fastq_path.joinpath(sample)} \\\n\t--cores {num_cores}"
     if not r2_reverse_complement:
         asap_o_matic_script += " \\\n\t--no-rc-R2"
 
@@ -135,23 +90,12 @@ def create_salmon_script_body(
     num_cores: int = 8,
 ) -> str:
     if index is None:
-        index = CITESEQ_REFERENCE_PATH
-    return (
-        "salmon alevin \\\n"
-        "\t--libtype ISR \\\n"
-        f"\t--index {index} \\\n"
-        f"\t--mates1 {fastq_path.joinpath(sample, sample_id+'_R1.fastq.gz')} \\\n"  # /s/guth-aci/ana_multiome_asapseq/data/raw/fastqs/set1/scATAC_1/scATAC_1_prot_R1.fastq.gz \\\n"
-        f"\t--mates2 {fastq_path.joinpath(sample, sample_id+'_R2.fastq.gz')} \\\n"  # /s/guth-aci/ana_multiome_asapseq/data/raw/fastqs/set1/scATAC_1/scATAC_1_prot_R2.fastq.gz \\\n"
-        f"\t--output {results} \\\n"
-        f"\t--threads {num_cores} \\\n"
-        "\t--citeseq \\\n"  # these next three lines are invariant for CITE-seq. Only need to change this if we aren't doing ASAPseq in which case, why are you using this?
-        "\t--featureStart 0 \\\n"
-        "\t--featureLength 15"
-    )
+        index = CITESEQ_INDEX_PATH
+    return f"salmon alevin \\\n\t--libtype ISR \\\n\t--index {index} \\\n\t--mates1 {fastq_path.joinpath(sample, f'{sample_id}_R1.fastq.gz')} \\\n\t--mates2 {fastq_path.joinpath(sample, f'{sample_id}_R2.fastq.gz')} \\\n\t--output {results} \\\n\t--threads {num_cores} \\\n\t--citeseq \\\n\t--featureStart 0 \\\n\t--featureLength 15"
 
 
 # @app.callback(invoke_without_command=True)
-@app.command(no_args_is_help=True)
+@asapseq.command(no_args_is_help=True)
 def create_atac_count_script(
     # Info used in the loop
     samplesheet: Annotated[
@@ -172,7 +116,7 @@ def create_atac_count_script(
         int,
         typer.Option("--cpus"),
     ] = 1,
-    reference_path: Annotated[Optional[Path], typer.Option("--ref")] = None,
+    reference_path: Annotated[Optional[Path], typer.Option("--ref")] = GENOMIC_REFERENCE_PATH,
     job_interval: Annotated[
         int,
         typer.Option("--interval"),
@@ -188,7 +132,7 @@ def create_atac_count_script(
     job_template_path: Annotated[
         Optional[str],
         typer.Option("--template", "-t", help="Path to the slurm cluster template"),
-    ] = None,
+    ] = JOB_MANAGER_TEMPLATE_PATH,
     load_cellranger_module: Annotated[
         bool,
         typer.Option(
@@ -240,7 +184,7 @@ def create_atac_count_script(
             sf.writelines(script_text)
 
 
-@app.command(no_args_is_help=True)
+@asapseq.command(no_args_is_help=True)
 def create_asap_o_matic_script(
     samplesheet: Annotated[
         Path,
@@ -300,7 +244,7 @@ def create_asap_o_matic_script(
             sf.writelines(script_text)
 
 
-@app.command(no_args_is_help=True)
+@asapseq.command(no_args_is_help=True)
 def create_salmon_count_script(
     samplesheet: Annotated[
         Path,

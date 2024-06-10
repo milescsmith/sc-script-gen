@@ -1,7 +1,7 @@
 [project]
-name = "asapseq_script_gen"
-version = "1.1.1"
-description = "Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin"
+name = "sc_script_gen"
+version = "2.0.0"
+description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
 ]
@@ -21,7 +21,8 @@ dev = [
 ]
 
 [project.scripts]
-asg = "asapseq_script_gen.create_count_scripts:app"
+asapseq = "sc_script_gen.asapseq:asapseq"
+fiveprime = "sc_script_gen.scrnaseq:five_prime_seq"
 
 [tool.pdm]
 distribution = false
