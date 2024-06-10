@@ -131,18 +131,18 @@ def create_lib_block(
 ) -> str:
     header = "[libraries],,,\nfastq_id,fastqs,lanes,feature_types\n"
     gex_row = (
-        f"{sample}_{'gex' if use_gex_lower else 'GEX'},{fastq_path}/{sample},{gex_lanes or ''},Gene Expression\n"
+        f"{sample}_{'gex' if use_gex_lower else 'GEX'},{fastq_path},{gex_lanes or ''},Gene Expression\n"
         if gex
         else ""
     )
     bcr_row = (
-        f"{sample}_{'bcr' if use_bcr_lower else 'BCR'},{fastq_path}/{sample},{bcr_lanes or ''},VDJ-B\n" if bcr else ""
+        f"{sample}_{'bcr' if use_bcr_lower else 'BCR'},{fastq_path},{bcr_lanes or ''},VDJ-B\n" if bcr else ""
     )
     tcr_row = (
-        f"{sample}_{'tcr' if use_tcr_lower else 'TCR'},{fastq_path}/{sample},{tcr_lanes or ''},VDJ-T\n" if tcr else ""
+        f"{sample}_{'tcr' if use_tcr_lower else 'TCR'},{fastq_path},{tcr_lanes or ''},VDJ-T\n" if tcr else ""
     )
     feat_row = (
-        f"{sample}_{'feat' if use_feat else 'prot'},{fastq_path}/{sample},{feat_lanes or ''},Antibody Capture\n"
+        f"{sample}_{'feat' if use_feat else 'prot'},{fastq_path},{feat_lanes or ''},Antibody Capture\n"
         if feat
         else ""
     )

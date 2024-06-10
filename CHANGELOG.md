@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [2.0.2] - 2024-06-10
+
+## Fixed
+
+- scrnaseq multi_samplesheet is no longer created with a duplicate sample name (gods, I need to start writing 
+    the unit tests first)
 
 # [2.0.1] - 2024-06-10
 
@@ -49,6 +55,7 @@
 
 - Everything
 
+[2.0.2]: https://github.com/milescsmith/asap-script-gen/compare/2.0.1..2.0.2
 [2.0.1]: https://github.com/milescsmith/asap-script-gen/compare/2.0.0..2.0.1
 [2.0.0]: https://github.com/milescsmith/asap-script-gen/compare/1.1.1..2.0.0
 [1.1.1]: https://github.com/milescsmith/asap-script-gen/compare/1.1.0..1.1.1
