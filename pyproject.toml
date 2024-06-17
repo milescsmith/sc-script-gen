@@ -1,6 +1,6 @@
 [project]
 name = "sc_script_gen"
-version = "2.0.2"
+version = "2.0.3"
 description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},

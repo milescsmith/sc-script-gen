@@ -91,7 +91,7 @@ def create_salmon_script_body(
 ) -> str:
     if index is None:
         index = CITESEQ_INDEX_PATH
-    return f"salmon alevin \\\n\t--libtype ISR \\\n\t--index {index} \\\n\t--mates1 {fastq_path.joinpath(sample, f'{sample_id}_R1.fastq.gz')} \\\n\t--mates2 {fastq_path.joinpath(sample, f'{sample_id}_R2.fastq.gz')} \\\n\t--output {results} \\\n\t--threads {num_cores} \\\n\t--citeseq \\\n\t--featureStart 0 \\\n\t--featureLength 15"
+    return f"salmon alevin \\\n\t--libType ISR \\\n\t--index {index} \\\n\t--mates1 {fastq_path.joinpath(sample, f'{sample_id}_R1.fastq.gz')} \\\n\t--mates2 {fastq_path.joinpath(sample, f'{sample_id}_R2.fastq.gz')} \\\n\t--output {results} \\\n\t--threads {num_cores} \\\n\t--citeseq \\\n\t--featureStart 0 \\\n\t--featureLength 15"
 
 
 # @app.callback(invoke_without_command=True)
