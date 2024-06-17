@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# [2.1.1] - 2024-06-17
+
+## Fixed
+
+- Gee, maybe it would be nice if the ASAPseq protein counts output from Salmon didn't overwrite every other Salmon job?
+    Now outputs to a sample-specific directory
+
 # [2.1.0] - 2024-06-17
 
 ## Added
@@ -71,6 +78,7 @@
 
 - Everything
 
+[2.1.1]: https://github.com/milescsmith/asap-script-gen/compare/2.1.0..2.1.1
 [2.1.0]: https://github.com/milescsmith/asap-script-gen/compare/2.0.3..2.1.0
 [2.0.3]: https://github.com/milescsmith/asap-script-gen/compare/2.0.2..2.0.3
 [2.0.2]: https://github.com/milescsmith/asap-script-gen/compare/2.0.1..2.0.2

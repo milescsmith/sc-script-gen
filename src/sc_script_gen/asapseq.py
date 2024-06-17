@@ -294,7 +294,7 @@ def create_salmon_count_script(
             sample=i["Sample_Project"],
             fastq_path=fastq_path,
             sample_id=i["Sample_ID"],
-            results=results_path,
+            results=results_path.joinpath(i["Sample_Project"]),
             index=index_path,
             num_cores=cpus,
         )
