@@ -2,10 +2,11 @@
 
 I'm tired of looking up exactly how to process the data coming out of single cell assays.  I'm tired of copy/pasting
 the same slurm job file 50 times and making minor alterations, hoping that this is the one I wrote for cellranger 8.0.0
-and not 7.1.0.  I'm tired of juggling where this sample sheet or library file is supposed to go.
+and not 7.1.0 and that I'm not adding a bunch of typos.  I'm tired of juggling where this sample sheet or library file is supposed to go. 
+There has been too much violence. Too much pain.
 
-I already put all the information that is necessary in the demultiplexing sample sheet, so why should I need to do
-anything else.
+I already put all the information that is necessary in the demultiplexing sample sheet, so why should I write out all of that
+information *AGAIN* in yet another series of files?
 
 Maybe this would be better as part of a Nextflow pipeline, but I don't want to deal with the nightmare of debugging
 Groovy code. Maybe Snakemake? Similar problem.  So, this thing.
