@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [2.2.0] - 2024-06-17
+
+## Added
+
+- Progress bars! Feedback!
+
 # [2.1.1] - 2024-06-17
 
 ## Fixed
@@ -78,6 +84,7 @@
 
 - Everything
 
+[2.2.0]: https://github.com/milescsmith/asap-script-gen/compare/2.1.1..2.2.0
 [2.1.1]: https://github.com/milescsmith/asap-script-gen/compare/2.1.0..2.1.1
 [2.1.0]: https://github.com/milescsmith/asap-script-gen/compare/2.0.3..2.1.0
 [2.0.3]: https://github.com/milescsmith/asap-script-gen/compare/2.0.2..2.0.3

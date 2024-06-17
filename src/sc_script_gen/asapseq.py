@@ -5,6 +5,7 @@ from typing import Annotated, Optional
 import typer
 from polars.exceptions import ColumnNotFoundError
 from rich import print as rprint
+from rich.progress import Progress
 
 from sc_script_gen import __version__
 from sc_script_gen.utils import JOB_MANAGER_TEMPLATE_PATH, create_script_header, read_samplesheet
@@ -30,7 +31,7 @@ class Demuxer(str, Enum):
 asapseq = typer.Typer(
     name="ASAPseq script generator",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
-    add_completion=False
+    add_completion=False,
 )
 
 
@@ -159,30 +160,36 @@ def create_atac_count_script(
         raise ColumnNotFoundError(msg)
     else:
         samples = ss_df["Sample_Project"].unique()
+        rprint(f"Found information for {len(samples)} samples")
 
     if reference_path is None:
         reference_path = GENOMIC_REFERENCE_PATH
 
     module_line = "module load cellranger-atac/2.1.0\n" if load_cellranger_module else "\n"
 
-    for i in samples:
-        sample_fastq_path = fastq_path.joinpath(i)
+    with Progress() as progress_bar:
+        task = progress_bar.add_task("Writing script files...", total=len(samples))
+        for i in samples:
+            progress_bar.console.print(f"Creating script for {i}")
+            sample_fastq_path = fastq_path.joinpath(i)
 
-        part1 = create_script_header(sample=i, jobtype="count", mem=mem, cpus=cpus)
-        part2 = create_atac_count_script_body(
-            sample=i,
-            fastq_path=sample_fastq_path,
-            reference_path=reference_path,
-            job_interval=job_interval,
-            max_num_jobs=max_num_jobs,
-            mem_per_core=mem_per_core,
-            job_template_path=job_template_path,
-        )
-        script_text = part1 + module_line + part2
+            part1 = create_script_header(sample=i, jobtype="count", mem=mem, cpus=cpus)
+            part2 = create_atac_count_script_body(
+                sample=i,
+                fastq_path=sample_fastq_path,
+                reference_path=reference_path,
+                job_interval=job_interval,
+                max_num_jobs=max_num_jobs,
+                mem_per_core=mem_per_core,
+                job_template_path=job_template_path,
+            )
+            script_text = part1 + module_line + part2
 
-        outfile = scripts_out_folder.joinpath(f"{i}_atac_count.job")
-        with outfile.open("w") as sf:
-            sf.writelines(script_text)
+            outfile = scripts_out_folder.joinpath(f"{i}_atac_count.job")
+            progress_bar.console.print(f"Wrote script file to {outfile}")
+            with outfile.open("w") as sf:
+                sf.writelines(script_text)
+            progress_bar.advance(task)
 
 
 @asapseq.command(no_args_is_help=True)
@@ -226,23 +233,31 @@ def create_asap_o_matic_script(
     if "Sample_Project" not in ss_df.columns:
         msg = "'Sample_Project' was not found in the samplesheet columns. Is your samplesheet in the correct format?"
         raise ColumnNotFoundError(msg)
+    else:
+        nsamples = ss_df[["Sample_ID", "Sample_Project"]].n_unique()
+        rprint(f'Found information for {ss_df[["Sample_ID", "Sample_Project"]].n_unique()} samples')
 
-    for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
-        sample_fastq_path = fastq_path.joinpath(i["Sample_ID"])
-        part1 = create_script_header(sample=i["Sample_ID"], jobtype="count", mem=mem, cpus=cpus)
-        part2 = create_kite_script_body(
-            sample=i["Sample_Project"],
-            fastq_path=sample_fastq_path,
-            sample_id=i["Sample_ID"],
-            demuxer=demuxer.value,
-            conjugation=conjugation.value,
-            num_cores=num_cores,
-            r2_reverse_complement=r2_reverse_complement,
-        )
-        script_text = part1 + part2
-        outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_atac_count.job")
-        with outfile.open("w") as sf:
-            sf.writelines(script_text)
+    with Progress() as progress_bar:
+        task = progress_bar.add_task("Writing script files...", total=nsamples)
+        for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
+            progress_bar.console.print(f"Creating script for {i['Sample_ID']}")
+            sample_fastq_path = fastq_path.joinpath(i["Sample_ID"])
+            part1 = create_script_header(sample=i["Sample_ID"], jobtype="count", mem=mem, cpus=cpus)
+            part2 = create_kite_script_body(
+                sample=i["Sample_Project"],
+                fastq_path=sample_fastq_path,
+                sample_id=i["Sample_ID"],
+                demuxer=demuxer.value,
+                conjugation=conjugation.value,
+                num_cores=num_cores,
+                r2_reverse_complement=r2_reverse_complement,
+            )
+            script_text = part1 + part2
+            outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_asap-o-matic.job")
+            progress_bar.console.print(f"Wrote script file to {outfile}")
+            with outfile.open("w") as sf:
+                sf.writelines(script_text)
+            progress_bar.advance(task)
 
 
 @asapseq.command(no_args_is_help=True)
@@ -287,19 +302,29 @@ def create_salmon_count_script(
     if "Sample_Project" not in ss_df.columns:
         msg = "'Sample_Project' was not found in the samplesheet columns. Is your samplesheet in the correct format?"
         raise ColumnNotFoundError(msg)
+    else:
+        nsamples = ss_df[["Sample_ID", "Sample_Project"]].n_unique()
+        rprint(f"Found information for {nsamples} samples")
 
-    for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
-        part1 = create_script_header(sample=i["Sample_ID"], jobtype="alevin", mem=mem, cpus=cpus)
-        part2 = create_salmon_script_body(
-            sample=i["Sample_Project"],
-            fastq_path=fastq_path,
-            sample_id=i["Sample_ID"],
-            results=results_path.joinpath(i["Sample_Project"]),
-            index=index_path,
-            num_cores=cpus,
-        )
+    # seems like this should be extracted into a new method
+    # and those progress_bar parts should be a decorator?
+    with Progress() as progress_bar:
+        task = progress_bar.add_task("Writing script files...", total=nsamples)
+        for i in ss_df[["Sample_ID", "Sample_Project"]].unique().iter_rows(named=True):
+            progress_bar.console.print(f"Creating script for {i['Sample_ID']}")
+            part1 = create_script_header(sample=i["Sample_ID"], jobtype="alevin", mem=mem, cpus=cpus)
+            part2 = create_salmon_script_body(
+                sample=i["Sample_Project"],
+                fastq_path=fastq_path,
+                sample_id=i["Sample_ID"],
+                results=results_path.joinpath(i["Sample_Project"]),
+                index=index_path,
+                num_cores=cpus,
+            )
 
-        script_text = part1 + part2
-        outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_salmon_count.job")
-        with outfile.open("w") as sf:
-            sf.writelines(script_text)
+            script_text = part1 + part2
+            outfile = scripts_out_folder.joinpath(f"{i['Sample_Project']}_salmon_count.job")
+            progress_bar.console.print(f"Wrote script file to {outfile}")
+            with outfile.open("w") as sf:
+                sf.writelines(script_text)
+            progress_bar.advance(task)

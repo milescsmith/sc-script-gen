@@ -1,6 +1,6 @@
 [project]
 name = "sc_script_gen"
-version = "2.1.1"
+version = "2.2.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
@@ -9,6 +9,7 @@ dependencies = [
     "polars>=0.20.31",
     "typer>=0.12.3",
     "rich>=13.7.1",
+    "loguru>=0.7.2",
 ]
 requires-python = ">=3.10.14"
 readme = "README.md"

@@ -5,6 +5,7 @@ from typing import Annotated, Literal, Optional
 import typer
 from polars.exceptions import ColumnNotFoundError
 from rich import print as rprint
+from rich.progress import Progress
 
 from sc_script_gen import __version__
 from sc_script_gen.utils import JOB_MANAGER_TEMPLATE_PATH, create_script_header, read_samplesheet
@@ -50,7 +51,7 @@ five_prime_seq = typer.Typer(
         "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics"
         " Single Cell Immune Profiling data using cellranger",
     ),
-    add_completion=False
+    add_completion=False,
 )
 
 
@@ -132,20 +133,12 @@ def create_lib_block(
 ) -> str:
     header = "[libraries],,,\nfastq_id,fastqs,lanes,feature_types\n"
     gex_row = (
-        f"{sample}_{'gex' if use_gex_lower else 'GEX'},{fastq_path},{gex_lanes or ''},Gene Expression\n"
-        if gex
-        else ""
+        f"{sample}_{'gex' if use_gex_lower else 'GEX'},{fastq_path},{gex_lanes or ''},Gene Expression\n" if gex else ""
     )
-    bcr_row = (
-        f"{sample}_{'bcr' if use_bcr_lower else 'BCR'},{fastq_path},{bcr_lanes or ''},VDJ-B\n" if bcr else ""
-    )
-    tcr_row = (
-        f"{sample}_{'tcr' if use_tcr_lower else 'TCR'},{fastq_path},{tcr_lanes or ''},VDJ-T\n" if tcr else ""
-    )
+    bcr_row = f"{sample}_{'bcr' if use_bcr_lower else 'BCR'},{fastq_path},{bcr_lanes or ''},VDJ-B\n" if bcr else ""
+    tcr_row = f"{sample}_{'tcr' if use_tcr_lower else 'TCR'},{fastq_path},{tcr_lanes or ''},VDJ-T\n" if tcr else ""
     feat_row = (
-        f"{sample}_{'feat' if use_feat else 'prot'},{fastq_path},{feat_lanes or ''},Antibody Capture\n"
-        if feat
-        else ""
+        f"{sample}_{'feat' if use_feat else 'prot'},{fastq_path},{feat_lanes or ''},Antibody Capture\n" if feat else ""
     )
 
     return header + gex_row + bcr_row + tcr_row + feat_row
@@ -291,43 +284,50 @@ def create_five_prime_script(
         for i in ss_df["Sample_Project"].unique()
     }
 
-    for k in libraries:
-        gex_libraries_present = libraries[k]["GEX"] or libraries[k]["gex"]
-        bcr_libraries_present = libraries[k]["BCR"] or libraries[k]["bcr"]
-        tcr_libraries_present = libraries[k]["TCR"] or libraries[k]["tcr"]
-        feat_libraries_present = libraries[k]["prot"] or libraries[k]["feat"]
+    rprint(f"Found information for {len(libraries)} samples")
 
-        part1 = create_script_header(sample=k, jobtype="multi_count", mem=mem, cpus=cpus)
-        part2 = create_multi_samplesheet(
-            sample=k,
-            fastq_path=fastq_path.joinpath(k),
-            output=scripts_out_folder.joinpath(f"{k}_multi_samplesheet.csv").absolute(),
-            create_bam=False,
-            expected_cells=2000,
-            include_introns=True,
-            no_secondary_analysis=True,
-            chemistry=kit_chemistry,
-            gex_reference=gex_index_path,
-            vdj_reference=vdj_index_path,
-            feat_reference=feat_index_ref,
-            gex=gex_libraries_present,
-            use_gex_lower=libraries[k]["gex"],
-            bcr=bcr_libraries_present,
-            use_bcr_lower=libraries[k]["bcr"],
-            tcr=tcr_libraries_present,
-            use_tcr_lower=libraries[k]["tcr"],
-            feat=feat_libraries_present,
-            use_feat=libraries[k]["feat"],
-        )
-        part3 = create_5_prime_multi_body(
-            sample=k,
-            multi_samplesheet=part2,
-            job_interval=job_interval,
-            max_num_jobs=max_num_jobs,
-            mem_per_core=mem_per_core,
-            job_template_path=job_template_path,
-        )
-        script_text = part1 + module_line + part3
-        outfile = scripts_out_folder.joinpath(f"{k}_multi_count.job")
-        with outfile.open("w") as sf:
-            sf.writelines(script_text)
+    with Progress() as progress_bar:
+        task = progress_bar.add_task("Writing script files...", total=len(libraries))
+        for k in libraries:
+            gex_libraries_present = libraries[k]["GEX"] or libraries[k]["gex"]
+            bcr_libraries_present = libraries[k]["BCR"] or libraries[k]["bcr"]
+            tcr_libraries_present = libraries[k]["TCR"] or libraries[k]["tcr"]
+            feat_libraries_present = libraries[k]["prot"] or libraries[k]["feat"]
+
+            progress_bar.console.print(f"Creating script for {k}")
+            part1 = create_script_header(sample=k, jobtype="multi_count", mem=mem, cpus=cpus)
+            part2 = create_multi_samplesheet(
+                sample=k,
+                fastq_path=fastq_path.joinpath(k),
+                output=scripts_out_folder.joinpath(f"{k}_multi_samplesheet.csv").absolute(),
+                create_bam=False,
+                expected_cells=2000,
+                include_introns=True,
+                no_secondary_analysis=True,
+                chemistry=kit_chemistry,
+                gex_reference=gex_index_path,
+                vdj_reference=vdj_index_path,
+                feat_reference=feat_index_ref,
+                gex=gex_libraries_present,
+                use_gex_lower=libraries[k]["gex"],
+                bcr=bcr_libraries_present,
+                use_bcr_lower=libraries[k]["bcr"],
+                tcr=tcr_libraries_present,
+                use_tcr_lower=libraries[k]["tcr"],
+                feat=feat_libraries_present,
+                use_feat=libraries[k]["feat"],
+            )
+            part3 = create_5_prime_multi_body(
+                sample=k,
+                multi_samplesheet=part2,
+                job_interval=job_interval,
+                max_num_jobs=max_num_jobs,
+                mem_per_core=mem_per_core,
+                job_template_path=job_template_path,
+            )
+            script_text = part1 + module_line + part3
+            outfile = scripts_out_folder.joinpath(f"{k}_multi_count.job")
+            progress_bar.console.print(f"Wrote script file to {outfile}")
+            with outfile.open("w") as sf:
+                sf.writelines(script_text)
+            progress_bar.advance(task)
