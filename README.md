@@ -36,7 +36,7 @@ There are two commands: `asapseq` and `fiveprime`:
 
 ## `asapseq`
 
-Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin
+Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and [asap-o-matic](https://github.com/milescsmith/asap_o_matic)/salmon alevin
 
 **Usage**:
 
@@ -58,7 +58,7 @@ $ asapseq [OPTIONS] COMMAND [ARGS]...
 ### `asapseq create-asap-o-matic-script`
 
 Batch create slurm scripts to concatenate and rearrange ASAP-seq sequencing
-data using asap-o-matic.
+data using [asap-o-matic](https://github.com/milescsmith/asap_o_matic).
 
 **Usage**:
 
