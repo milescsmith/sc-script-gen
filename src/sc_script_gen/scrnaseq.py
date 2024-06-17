@@ -50,6 +50,7 @@ five_prime_seq = typer.Typer(
         "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics"
         " Single Cell Immune Profiling data using cellranger",
     ),
+    add_completion=False
 )
 
 

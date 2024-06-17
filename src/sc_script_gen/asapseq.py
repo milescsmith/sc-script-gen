@@ -30,6 +30,7 @@ class Demuxer(str, Enum):
 asapseq = typer.Typer(
     name="ASAPseq script generator",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
+    add_completion=False
 )
 
 
