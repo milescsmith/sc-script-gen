@@ -24,7 +24,7 @@ dev = [
 
 [project.scripts]
 asapseq = "sc_script_gen.asapseq:asapseq"
-scrnaseq = "sc_script_gen.scrnaseq:five_prime_seq"
+scrnaseq = "sc_script_gen.scrnaseq:scrnaseq"
 
 [tool.pdm]
 distribution = false
