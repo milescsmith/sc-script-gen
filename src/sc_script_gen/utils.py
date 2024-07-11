@@ -1,17 +1,26 @@
 from pathlib import Path
 
 import polars as pl
+from loguru import logger
 
 JOB_MANAGER_TEMPLATE_PATH = "/Volumes/guth_aci_informatics/software/slurm.template"
 
 
 def read_samplesheet(samplesheet_file: Path) -> pl.DataFrame:
-    """This assumes we're using a bcl-convert style samplesheet"""
+    """This should match either bcl-convert- or bcl2fastq-style samplesheets"""
     with samplesheet_file.open("r") as s:
-        n = 1
-        while "[BCLConvert_Data]" not in s.readline():
+        n = 0
+        found = False
+        for line in s.readlines():
             n += 1
+            if "Data" in line:
+                found = True
+                break
 
+    if not found:
+        msg = "A line with 'Data' was not found in the samplesheet. Unable to process"
+        logger.error(msg)
+        raise ValueError(msg)
     return pl.read_csv(samplesheet_file, skip_rows=n)
 
 

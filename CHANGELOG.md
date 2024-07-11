@@ -1,5 +1,16 @@
 # CHANGELOG
 
+# [2.3.0] - 2024-06-17
+
+## Fixed
+
+- `sc_script_gen.utils.read_samplesheet` can now process samplesheets for bcl2fastq
+
+## Changed
+
+- Renamed the `fiveprime` subcommand `scrnaseq` since it covered more than just the
+    five prime assays
+
 # [2.2.0] - 2024-06-17
 
 ## Added

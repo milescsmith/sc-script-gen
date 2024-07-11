@@ -45,7 +45,7 @@ class Chemistry(str, Enum):
     ARC_v1 = "ARC-v1"  # for analyzing the Gene Expression portion of Multiome data. If Cell Ranger auto-detects ARC-v1 chemistry, an error is triggered.
 
 
-five_prime_seq = typer.Typer(
+scrnaseq = typer.Typer(
     name="5'-scRNAseq script generator",
     help=(
         "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics"
@@ -55,7 +55,7 @@ five_prime_seq = typer.Typer(
 )
 
 
-@five_prime_seq.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
+@scrnaseq.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
     """Prints the version of the package."""
     if value:
@@ -201,8 +201,8 @@ def create_multi_samplesheet(
     return output
 
 
-@five_prime_seq.command(name="create_scripts", no_args_is_help=True)
-def create_five_prime_script(
+@scrnaseq.command(name="create_scripts", no_args_is_help=True)
+def create_scrnaseq_script(
     samplesheet: Annotated[
         Path,
         typer.Argument(help="Path to the bcl-convert samplesheet"),
