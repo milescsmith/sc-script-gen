@@ -1,6 +1,6 @@
 from enum import Enum
 from pathlib import Path
-from typing import Annotated, Literal, Optional
+from typing import Annotated, Optional
 
 import typer
 from polars.exceptions import ColumnNotFoundError
@@ -52,13 +52,12 @@ scrnaseq = typer.Typer(
         " Single Cell Immune Profiling data using cellranger",
     ),
     add_completion=False,
+    no_args_is_help=True,
 )
 
 
-@scrnaseq.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
-def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
-    """Prints the version of the package."""
-    if value:
+def version_callback(version: Annotated[bool, typer.Option("--version")] = False) -> None:  # FBT001
+    if version:
         rprint(f"[yellow]asapseq-script-gen[/] version: [bold blue]{__version__}[/]")
         raise typer.Exit()
 
@@ -85,21 +84,27 @@ def create_5_prime_multi_body(
 
 def create_gex_block(
     create_bam: bool = False,
-    expected_cells: int = 20000,
+    expected_cells: Optional[int] = None,
+    force_cells: Optional[int] = None,
     include_introns: bool = True,
     no_secondary_analysis: bool = True,
-    chemistry: Literal["SC5PHT"] = "SC5PHT",  # This is only here for future expansion
+    chemistry: Chemistry = Chemistry.SC5PHT,
     reference: Path = GEX_REFERENCE_PATH,
 ) -> str:
-    return (
+    output = (
         "[gene-expression],,,\n"
         f"create-bam,{str(create_bam).lower()},,\n"
-        f"expect-cells,{expected_cells},,\n"
         f"include-introns,{str(include_introns).lower()},,\n"
         f"no-secondary,{str(no_secondary_analysis).lower()},,\n"
         f"chemistry,{chemistry},,\n"
         f"reference,{reference},,\n"
     )
+    if expected_cells:
+        output += f"expect-cells,{expected_cells},,\n"
+    if force_cells:
+        output += f"force-cells,{force_cells},,\n"
+
+    return output
 
 
 def create_vdj_block(
@@ -149,7 +154,8 @@ def create_multi_samplesheet(
     fastq_path: Path,
     output: Path,
     create_bam: bool = False,
-    expected_cells: int = 20000,
+    expected_cells: Optional[int] = None,
+    force_cells: Optional[int] = None,
     include_introns: bool = True,
     no_secondary_analysis: bool = True,
     chemistry: str = "SC5PHT",
@@ -169,6 +175,7 @@ def create_multi_samplesheet(
         create_gex_block(
             create_bam=create_bam,
             expected_cells=expected_cells,
+            force_cells=force_cells,
             include_introns=include_introns,
             no_secondary_analysis=no_secondary_analysis,
             chemistry=chemistry,
@@ -195,13 +202,19 @@ def create_multi_samplesheet(
         )
     )
 
+    if not output.parent.resolve().exists():
+        output.parent.resolve().mkdir()
     with output.open("w") as s:
         s.writelines(samplesheet_data)
 
     return output
 
 
-@scrnaseq.command(name="create_scripts", no_args_is_help=True)
+@scrnaseq.command(
+    name="create_scripts",
+    no_args_is_help=True,
+    context_settings={"allow_extra_args": True, "ignore_unknown_options": True},
+)
 def create_scrnaseq_script(
     samplesheet: Annotated[
         Path,
@@ -224,8 +237,48 @@ def create_scrnaseq_script(
         Path,
         typer.Option("--feat_ref", help="Path to the salmon index of the CITE-seq barcodes"),
     ] = FEAT_REFERENCE_PATH,
+    create_bam: Annotated[
+        bool, typer.Option("-b", "--bam", help="Enable or disable BAM file generation", rich_help_panel="Count options")
+    ] = False,
+    expect_cells: Annotated[
+        Optional[int],
+        typer.Option(
+            "-e",
+            "--expect_cells",
+            help="Override auto-estimation of cells.",
+            rich_help_panel="Count options",
+            show_default="Use cellranger's automatic cell detection",
+        ),
+    ] = None,
+    force_cells: Annotated[
+        Optional[int],
+        typer.Option(
+            "-f",
+            "--force_cells",
+            help="Force pipeline to use this number of cells, bypassing cell detection.",
+            rich_help_panel="Count options",
+        ),
+    ] = None,
+    include_introns: Annotated[
+        bool,
+        typer.Option(
+            "-i",
+            "--include_introns",
+            help="Set to false to exclude intronic reads in count.",
+            rich_help_panel="Count options",
+        ),
+    ] = True,
+    no_secondary: Annotated[
+        bool,
+        typer.Option(
+            "-a", "--no_analysis", help=" Disable secondary analysis, e.g. clustering.", rich_help_panel="Count options"
+        ),
+    ] = True,
     kit_chemistry: Annotated[
-        Optional[Chemistry], typer.Option("--chem", help="10x kit chemistry. Currently, only 'SC5PHT' is supported")
+        Optional[Chemistry],
+        typer.Option(
+            "--chem", help="10x kit chemistry. Currently, only 'SC5PHT' is supported", rich_help_panel="Count options"
+        ),
     ] = Chemistry.SC5PHT,
     job_interval: Annotated[
         int,
@@ -261,11 +314,7 @@ def create_scrnaseq_script(
     ] = True,
     version: Annotated[
         bool,
-        typer.Option(
-            "--version",
-            callback=version_callback,
-            help="Print version number.",
-        ),
+        typer.Option("--version", callback=version_callback, help="Print version number.", is_eager=True),
     ] = False,
 ):
     ss_df = read_samplesheet(samplesheet)
@@ -300,10 +349,11 @@ def create_scrnaseq_script(
                 sample=k,
                 fastq_path=fastq_path.joinpath(k),
                 output=scripts_out_folder.joinpath(f"{k}_multi_samplesheet.csv").absolute(),
-                create_bam=False,
-                expected_cells=2000,
-                include_introns=True,
-                no_secondary_analysis=True,
+                create_bam=create_bam,
+                expected_cells=expect_cells,
+                force_cells=force_cells,
+                include_introns=include_introns,
+                no_secondary_analysis=no_secondary,
                 chemistry=kit_chemistry,
                 gex_reference=gex_index_path,
                 vdj_reference=vdj_index_path,

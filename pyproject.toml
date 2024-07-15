@@ -1,6 +1,6 @@
 [project]
 name = "sc_script_gen"
-version = "2.3.1"
+version = "2.4.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
@@ -28,3 +28,8 @@ scrnaseq = "sc_script_gen.scrnaseq:scrnaseq"
 
 [tool.pdm]
 distribution = false
+
+[tool.pdm.scripts]
+format = "ruff format src/"
+lint = "ruff check --fix src/"
+all = {composite = ["format", "lint"]}

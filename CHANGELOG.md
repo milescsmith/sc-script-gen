@@ -1,6 +1,14 @@
 # CHANGELOG
 
-# [2.3.0] - 2024-06-17
+# [2.4.0] - 2024-07-12
+
+## Changed
+
+- `sc_script_gen.scrnaseq.create_scrnaseq_script` can now take additional options to alter what is put in the 
+    multi_samplesheet.csv file
+- Changed the default value for the `expect_cells` argument to `None`
+
+# [2.3.0] - 2024-06-11
 
 ## Fixed
 
@@ -95,6 +103,8 @@
 
 - Everything
 
+[2.4.0]: https://github.com/milescsmith/asap-script-gen/compare/2.3.0..2.4.0
+[2.3.0]: https://github.com/milescsmith/asap-script-gen/compare/2.2.0..2.3.0
 [2.2.0]: https://github.com/milescsmith/asap-script-gen/compare/2.1.1..2.2.0
 [2.1.1]: https://github.com/milescsmith/asap-script-gen/compare/2.1.0..2.1.1
 [2.1.0]: https://github.com/milescsmith/asap-script-gen/compare/2.0.3..2.1.0

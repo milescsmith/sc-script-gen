@@ -32,13 +32,14 @@ asapseq = typer.Typer(
     name="ASAPseq script generator",
     help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
     add_completion=False,
+    no_args_is_help=True,
+    add_help_option=True,
 )
 
 
-@asapseq.command(name="version", context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
-def version_callback(value: Annotated[bool, typer.Option()] = True) -> None:  # FBT001
+def version_callback(version: Annotated[bool, typer.Option("--version")] = True) -> None:  # FBT001
     """Prints the version of the package."""
-    if value:
+    if version:
         rprint(f"[yellow]asapseq-script-gen[/] version: [bold blue]{__version__}[/]")
         raise typer.Exit()
 
@@ -97,7 +98,7 @@ def create_salmon_script_body(
 
 
 # @app.callback(invoke_without_command=True)
-@asapseq.command(no_args_is_help=True)
+@asapseq.command(no_args_is_help=True, context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def create_atac_count_script(
     # Info used in the loop
     samplesheet: Annotated[
@@ -149,6 +150,7 @@ def create_atac_count_script(
             "--version",
             callback=version_callback,
             help="Print version number.",
+            is_eager=True,
         ),
     ] = False,
 ) -> None:
@@ -187,12 +189,14 @@ def create_atac_count_script(
 
             outfile = scripts_out_folder.joinpath(f"{i}_atac_count.job")
             progress_bar.console.print(f"Wrote script file to {outfile}")
+            if not scripts_out_folder.resolve().exists():
+                scripts_out_folder.resolve().mkdir()
             with outfile.open("w") as sf:
                 sf.writelines(script_text)
             progress_bar.advance(task)
 
 
-@asapseq.command(no_args_is_help=True)
+@asapseq.command(no_args_is_help=True, context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def create_asap_o_matic_script(
     samplesheet: Annotated[
         Path,
@@ -217,11 +221,7 @@ def create_asap_o_matic_script(
     ] = 1,
     version: Annotated[
         bool,
-        typer.Option(
-            "--version",
-            callback=version_callback,
-            help="Print version number.",
-        ),
+        typer.Option("--version", callback=version_callback, help="Print version number.", is_eager=True),
     ] = False,
 ):
     """Batch create slurm scripts to concatenate and rearrange ASAP-seq sequencing
@@ -286,11 +286,7 @@ def create_salmon_count_script(
     ] = 8,
     version: Annotated[
         bool,
-        typer.Option(
-            "--version",
-            callback=version_callback,
-            help="Print version number.",
-        ),
+        typer.Option("--version", callback=version_callback, help="Print version number.", is_eager=True),
     ] = False,
 ):
     """Batch create slurm scripts to count ASAP-seq protein data with salmon alevin"""
