@@ -1,6 +1,10 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
 [project]
 name = "sc_script_gen"
-version = "2.4.0"
+version = "2.5.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
@@ -15,11 +19,17 @@ requires-python = ">=3.10.14"
 readme = "README.md"
 license = {text = "GPL-3.0"}
 
-
 [project.optional-dependencies]
 dev = [
     "ruff>=0.4.8",
-    "pip>=24.0",
+    "pip>=24.2",
+    "pytest>=8.3.2",
+    "nox>=2024.4.15",
+    "coverage>=7.6.0",
+    "pytest-random-order>=1.1.1",
+    "pytest-xdist[psutil]>=3.6.1",
+    "pre-commit>=3.8.0",
+    "pytest-cov>=5.0.0",
 ]
 
 [project.scripts]
@@ -27,9 +37,14 @@ asapseq = "sc_script_gen.asapseq:asapseq"
 scrnaseq = "sc_script_gen.scrnaseq:scrnaseq"
 
 [tool.pdm]
-distribution = false
+distribution = true
 
 [tool.pdm.scripts]
 format = "ruff format src/"
 lint = "ruff check --fix src/"
 all = {composite = ["format", "lint"]}
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]

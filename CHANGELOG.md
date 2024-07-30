@@ -1,5 +1,15 @@
 # CHANGELOG
 
+# [2.5.0] - 2024-07-30
+
+## Added
+
+- pre-commit, coverage, noxfile as part of modernization effort
+
+## Fixed
+
+- removed an bug where the fastq_path was ignored and instead used a hard coded value
+
 # [2.4.0] - 2024-07-12
 
 ## Changed
@@ -103,6 +113,7 @@
 
 - Everything
 
+[2.5.0]: https://github.com/milescsmith/asap-script-gen/compare/2.4.0..2.5.0
 [2.4.0]: https://github.com/milescsmith/asap-script-gen/compare/2.3.0..2.4.0
 [2.3.0]: https://github.com/milescsmith/asap-script-gen/compare/2.2.0..2.3.0
 [2.2.0]: https://github.com/milescsmith/asap-script-gen/compare/2.1.1..2.2.0

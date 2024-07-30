@@ -77,7 +77,7 @@ def create_kite_script_body(
     num_cores: int = 8,
     r2_reverse_complement: bool = True,
 ) -> str:
-    asap_o_matic_script = f"asap-o-matic \\\n\t--fastqs /s/guth-aci/ARA08/data/raw/fastqs/asapseq_set_2/{sample} \\\n\t--sample {sample_id or f'{sample}_prot'} \\\n\t--id {sample_id or f'{sample}_prot'} \\\n\t--fastq_source {demuxer} \\\n\t--conjugation {conjugation} \\\n\t--outdir {fastq_path.joinpath(sample)} \\\n\t--cores {num_cores}"
+    asap_o_matic_script = f"asap-o-matic \\\n\t--fastqs {fastq_path}/{sample} \\\n\t--sample {sample_id or f'{sample}_prot'} \\\n\t--id {sample_id or f'{sample}_prot'} \\\n\t--fastq_source {demuxer} \\\n\t--conjugation {conjugation} \\\n\t--outdir {fastq_path.joinpath(sample)} \\\n\t--cores {num_cores}"
     if not r2_reverse_complement:
         asap_o_matic_script += " \\\n\t--no-rc-R2"
 
