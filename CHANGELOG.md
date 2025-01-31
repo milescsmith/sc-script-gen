@@ -1,5 +1,17 @@
 # CHANGELOG
 
+# [2.6.0] - 2025-01-31
+
+## Added
+
+- Dockerfile
+- An entrypoint that handles both of the top main functions, asapseq and scrnaseq
+
+## Changed
+
+- Update dependencies.
+- Minor code formatting
+
 # [2.5.0] - 2024-07-30
 
 ## Added

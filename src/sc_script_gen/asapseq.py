@@ -30,7 +30,10 @@ class Demuxer(str, Enum):
 
 asapseq = typer.Typer(
     name="ASAPseq script generator",
-    help="Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger and asap_o_matic/salmon alevin",
+    help=(
+        "Use information from a bcl-convert samplesheet to create scripts to process asapseq data using cellranger "
+        "and asap_o_matic/salmon alevin"
+    ),
     add_completion=False,
     no_args_is_help=True,
     add_help_option=True,
@@ -77,7 +80,16 @@ def create_kite_script_body(
     num_cores: int = 8,
     r2_reverse_complement: bool = True,
 ) -> str:
-    asap_o_matic_script = f"asap-o-matic \\\n\t--fastqs {fastq_path}/{sample} \\\n\t--sample {sample_id or f'{sample}_prot'} \\\n\t--id {sample_id or f'{sample}_prot'} \\\n\t--fastq_source {demuxer} \\\n\t--conjugation {conjugation} \\\n\t--outdir {fastq_path.joinpath(sample)} \\\n\t--cores {num_cores}"
+    asap_o_matic_script = (
+        f"asap-o-matic \\\n\t"
+        f"--fastqs {fastq_path} \\\n\t"
+        f"--sample {sample_id or f'{sample}_prot'} \\\n\t"
+        f"--id {sample_id or f'{sample}_prot'} \\\n\t"
+        f"--fastq_source {demuxer} \\\n\t"
+        f"--conjugation {conjugation} \\\n\t"
+        f"--outdir {fastq_path.joinpath(sample)} \\\n\t"
+        f"--cores {num_cores}"
+    )
     if not r2_reverse_complement:
         asap_o_matic_script += " \\\n\t--no-rc-R2"
 
@@ -94,7 +106,18 @@ def create_salmon_script_body(
 ) -> str:
     if index is None:
         index = CITESEQ_INDEX_PATH
-    return f"salmon alevin \\\n\t--libType ISR \\\n\t--index {index} \\\n\t--mates1 {fastq_path.joinpath(sample, f'{sample_id}_R1.fastq.gz')} \\\n\t--mates2 {fastq_path.joinpath(sample, f'{sample_id}_R2.fastq.gz')} \\\n\t--output {results} \\\n\t--threads {num_cores} \\\n\t--citeseq \\\n\t--featureStart 0 \\\n\t--featureLength 15"
+    return (
+        f"salmon alevin \\\n\t"
+        f"--libType ISR \\\n\t"
+        f"--index {index} \\\n\t"
+        f"--mates1 {fastq_path.joinpath(sample, f'{sample_id}_R1.fastq.gz')} \\\n\t"
+        f"--mates2 {fastq_path.joinpath(sample, f'{sample_id}_R2.fastq.gz')} \\\n\t"
+        f"--output {results} \\\n\t"
+        f"--threads {num_cores} \\\n\t"
+        f"--citeseq \\\n\t"
+        f"--featureStart 0 \\\n\t"
+        f"--featureLength 15"
+    )
 
 
 # @app.callback(invoke_without_command=True)
@@ -235,7 +258,7 @@ def create_asap_o_matic_script(
         raise ColumnNotFoundError(msg)
     else:
         nsamples = ss_df[["Sample_ID", "Sample_Project"]].n_unique()
-        rprint(f'Found information for {ss_df[["Sample_ID", "Sample_Project"]].n_unique()} samples')
+        rprint(f"Found information for {ss_df[['Sample_ID', 'Sample_Project']].n_unique()} samples")
 
     with Progress() as progress_bar:
         task = progress_bar.add_task("Writing script files...", total=nsamples)

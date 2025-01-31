@@ -48,17 +48,18 @@ class Chemistry(str, Enum):
 scrnaseq = typer.Typer(
     name="5'-scRNAseq script generator",
     help=(
-        "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics"
-        " Single Cell Immune Profiling data using cellranger",
+        "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics "
+        "Single Cell Immune Profiling data using cellranger",
     ),
     add_completion=False,
     no_args_is_help=True,
+    add_help_option=True,
 )
 
 
 def version_callback(version: Annotated[bool, typer.Option("--version")] = False) -> None:  # FBT001
     if version:
-        rprint(f"[yellow]asapseq-script-gen[/] version: [bold blue]{__version__}[/]")
+        rprint(f"[yellow]scrnaseq-script-gen[/] version: [bold blue]{__version__}[/]")
         raise typer.Exit()
 
 
