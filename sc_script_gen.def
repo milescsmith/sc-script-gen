@@ -1,0 +1,15 @@
+Bootstrap: docker
+From: index.docker.io/python:3.12-slim
+
+%files
+    ./dist/sc_script_gen-2.6.0-py3-none-any.whl /opt/sc_script_gen-2.6.0-py3-none-any.whl
+
+%post
+    pip install /opt/sc_script_gen-2.6.0-py3-none-any.whl
+
+%runscript
+    script_gen $*
+
+%labels
+    Author miles-smith@omrf.org
+    Version 2.6.0
