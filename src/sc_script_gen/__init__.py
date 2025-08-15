@@ -12,7 +12,10 @@ from importlib.metadata import PackageNotFoundError, version
 
 # from rich.console import Console
 
+__version__ = "unknown"
+
 try:
-    __version__ = version(__package__)
+    if __package__ is not None:
+        __version__ = version(__package__)
 except PackageNotFoundError:  # pragma: no cover
     __version__ = "unknown"

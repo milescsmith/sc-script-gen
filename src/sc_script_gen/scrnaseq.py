@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from polars.exceptions import ColumnNotFoundError
@@ -20,7 +20,7 @@ FEAT_REFERENCE_PATH = Path(
 # more options will probably not be covered until I 1) need them or 2) am sufficiently bored
 
 
-class Chemistry(str, Enum):
+class Chemistry(StrEnum):
     threeprime = "threeprime"
     SC3Pv1 = "SC3Pv1"  # Single Cell 3' v1, v2, v3, or v4
     SC3Pv2 = "SC3Pv2"
@@ -47,10 +47,7 @@ class Chemistry(str, Enum):
 
 scrnaseq = typer.Typer(
     name="5'-scRNAseq script generator",
-    help=(
-        "Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics "
-        "Single Cell Immune Profiling data using cellranger",
-    ),
+    help="Use information from a bcl-convert samplesheet to create scripts to process data from the 10x Genomics Single Cell Immune Profiling data using cellranger",
     add_completion=False,
     no_args_is_help=True,
     add_help_option=True,
@@ -85,8 +82,8 @@ def create_5_prime_multi_body(
 
 def create_gex_block(
     create_bam: bool = False,
-    expected_cells: Optional[int] = None,
-    force_cells: Optional[int] = None,
+    expected_cells: int | None = None,
+    force_cells: int | None = None,
     include_introns: bool = True,
     no_secondary_analysis: bool = True,
     chemistry: Chemistry = Chemistry.SC5PHT,
@@ -155,11 +152,11 @@ def create_multi_samplesheet(
     fastq_path: Path,
     output: Path,
     create_bam: bool = False,
-    expected_cells: Optional[int] = None,
-    force_cells: Optional[int] = None,
+    expected_cells: int | None = None,
+    force_cells: int | None = None,
     include_introns: bool = True,
     no_secondary_analysis: bool = True,
-    chemistry: str = "SC5PHT",
+    chemistry: Chemistry = Chemistry.SC5PHT,
     gex_reference: Path = GEX_REFERENCE_PATH,
     vdj_reference: Path = VDJ_REFERENCE_PATH,
     feat_reference: Path = FEAT_REFERENCE_PATH,
@@ -204,7 +201,7 @@ def create_multi_samplesheet(
     )
 
     if not output.parent.resolve().exists():
-        output.parent.resolve().mkdir()
+        output.parent.resolve().mkdir(parents=True)
     with output.open("w") as s:
         s.writelines(samplesheet_data)
 
@@ -228,21 +225,48 @@ def create_scrnaseq_script(
     fastq_path: Annotated[Path, typer.Argument(help="Path to where the FASTQs are stored")],
     gex_index_path: Annotated[
         Path,
-        typer.Option("--gex_index", help="Path to the salmon index of the CITE-seq barcodes"),
+        typer.Option(
+            "--gex_index",
+            help="Path to the appropriate STAR index",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+            readable=True,
+            resolve_path=True,
+            rich_help_panel="Reference locations",
+        ),
     ] = GEX_REFERENCE_PATH,
     vdj_index_path: Annotated[
         Path,
-        typer.Option("--vdj_index", help="Path to the salmon index of the CITE-seq barcodes"),
+        typer.Option(
+            "--vdj_index",
+            help="Path to the apppropriate V(D)J reference",
+            exists=True,
+            dir_okay=True,
+            file_okay=False,
+            readable=True,
+            resolve_path=True,
+            rich_help_panel="Reference locations",
+        ),
     ] = VDJ_REFERENCE_PATH,
     feat_index_ref: Annotated[
         Path,
-        typer.Option("--feat_ref", help="Path to the salmon index of the CITE-seq barcodes"),
+        typer.Option(
+            "--feat_ref",
+            help="Path to the file mapping feature barcodes to feature names",
+            exists=True,
+            dir_okay=False,
+            file_okay=True,
+            readable=True,
+            resolve_path=True,
+            rich_help_panel="Reference locations",
+        ),
     ] = FEAT_REFERENCE_PATH,
     create_bam: Annotated[
         bool, typer.Option("-b", "--bam", help="Enable or disable BAM file generation", rich_help_panel="Count options")
     ] = False,
     expect_cells: Annotated[
-        Optional[int],
+        int | None,
         typer.Option(
             "-e",
             "--expect_cells",
@@ -252,7 +276,7 @@ def create_scrnaseq_script(
         ),
     ] = None,
     force_cells: Annotated[
-        Optional[int],
+        int | None,
         typer.Option(
             "-f",
             "--force_cells",
@@ -276,7 +300,7 @@ def create_scrnaseq_script(
         ),
     ] = True,
     kit_chemistry: Annotated[
-        Optional[Chemistry],
+        Chemistry,
         typer.Option(
             "--chem", help="10x kit chemistry. Currently, only 'SC5PHT' is supported", rich_help_panel="Count options"
         ),
@@ -302,7 +326,7 @@ def create_scrnaseq_script(
         typer.Option("--cpus", "-c", help="Amount of cpus to use for each slurm job"),
     ] = 8,
     job_template_path: Annotated[
-        Optional[str],
+        Path,
         typer.Option("--template", "-t", help="Path to the slurm cluster template"),
     ] = JOB_MANAGER_TEMPLATE_PATH,
     load_cellranger_module: Annotated[

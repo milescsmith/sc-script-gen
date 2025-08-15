@@ -134,3 +134,5 @@ tests/test_count
 tests/test_kite
 tests/test_salmon
 src/sc_script_gen/scrnaseq.py
+
+*.sif

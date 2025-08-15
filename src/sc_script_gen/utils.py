@@ -3,7 +3,7 @@ from pathlib import Path
 import polars as pl
 from loguru import logger
 
-JOB_MANAGER_TEMPLATE_PATH = "/Volumes/guth_aci_informatics/software/slurm.template"
+JOB_MANAGER_TEMPLATE_PATH = Path("/Volumes/guth_aci_informatics/software/slurm.template")
 
 
 def read_samplesheet(samplesheet_file: Path) -> pl.DataFrame:

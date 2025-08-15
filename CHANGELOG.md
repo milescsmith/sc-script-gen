@@ -1,5 +1,17 @@
 # CHANGELOG
 
+# [2.7.0] - 2026-08-15
+
+## Added
+
+- Linting by [ty](https://docs.astral.sh/ty/)
+    - Multiple fixes to make ty happy
+
+## Changed
+
+- If output directory for scripts does not exist, now we properly create.
+- Minimum version of Python bumped up to 3.12
+
 # [2.6.0] - 2025-01-31
 
 ## Added
@@ -125,6 +137,8 @@
 
 - Everything
 
+[2.7.0]: https://github.com/milescsmith/asap-script-gen/compare/2.6.0..2.7.0
+[2.6.0]: https://github.com/milescsmith/asap-script-gen/compare/2.5.0..2.6.0
 [2.5.0]: https://github.com/milescsmith/asap-script-gen/compare/2.4.0..2.5.0
 [2.4.0]: https://github.com/milescsmith/asap-script-gen/compare/2.3.0..2.4.0
 [2.3.0]: https://github.com/milescsmith/asap-script-gen/compare/2.2.0..2.3.0

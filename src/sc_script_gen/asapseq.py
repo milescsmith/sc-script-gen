@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 from polars.exceptions import ColumnNotFoundError
@@ -12,18 +12,18 @@ from sc_script_gen.utils import JOB_MANAGER_TEMPLATE_PATH, create_script_header,
 
 # obviously, this only works for me
 # TODO: move this to a "defaults.toml" file?
-CITESEQ_INDEX_PATH = "/Volumes/guth_aci_informatics/references/miscellaneous/salmon_totalseq_b_asapseq"
-GENOMIC_REFERENCE_PATH = "/Volumes/shared-refs/cellranger/refdata-cellranger-arc-GRCh38-2020-A-2.0.0/"
+CITESEQ_INDEX_PATH = Path("/Volumes/guth_aci_informatics/references/miscellaneous/salmon_totalseq_b_asapseq")
+GENOMIC_REFERENCE_PATH = Path("/Volumes/shared-refs/cellranger/refdata-cellranger-arc-GRCh38-2020-A-2.0.0/")
 
 # TODO: More feedback
 
 
-class Conjugation(str, Enum):
+class Conjugation(StrEnum):
     TotalSeqA = "TotalSeqA"
     TotalSeqB = "TotalSeqB"
 
 
-class Demuxer(str, Enum):
+class Demuxer(StrEnum):
     mkfastq = "mkfastq"
     bcl_convert = "bcl-convert"
 
@@ -54,7 +54,7 @@ def create_atac_count_script_body(
     job_interval: int = 2000,
     max_num_jobs: int = 8,
     mem_per_core: int = 8,
-    job_template_path: str | None = None,
+    job_template_path: Path | None = None,
 ):
     return (
         f"cellranger-atac \\\n"
@@ -64,7 +64,7 @@ def create_atac_count_script_body(
         f"\t\t--fastqs={fastq_path} \\\n"
         f"\t\t--jobmode={job_template_path} \\\n"
         f"\t\t--disable-ui \\\n"
-        f"\t\t--jobinterval={job_interval} \\\n"
+        f"\t\t--jobinterval={job_interval!s} \\\n"
         f"\t\t--maxjobs={max_num_jobs} \\\n"
         f"\t\t--mempercore={mem_per_core} \\\n"
         f"\t\t--sample={sample}_scATAC"
@@ -142,7 +142,7 @@ def create_atac_count_script(
         int,
         typer.Option("--cpus"),
     ] = 1,
-    reference_path: Annotated[Optional[Path], typer.Option("--ref")] = GENOMIC_REFERENCE_PATH,
+    reference_path: Annotated[Path | None, typer.Option("--ref")] = GENOMIC_REFERENCE_PATH,
     job_interval: Annotated[
         int,
         typer.Option("--interval"),
@@ -156,7 +156,7 @@ def create_atac_count_script(
         typer.Option("--mem_per_core"),
     ] = 8,
     job_template_path: Annotated[
-        Optional[str],
+        Path,
         typer.Option("--template", "-t", help="Path to the slurm cluster template"),
     ] = JOB_MANAGER_TEMPLATE_PATH,
     load_cellranger_module: Annotated[
@@ -296,7 +296,7 @@ def create_salmon_count_script(
     results_path: Annotated[Path, typer.Argument(help="Path to where the count results should be saved")],
     fastq_path: Annotated[Path, typer.Argument(help="Path to the rearranged FASTQs")],
     index_path: Annotated[
-        Optional[Path],
+        Path | None,
         typer.Option("--index", "-i", help="Path to the salmon index of the CITE-seq barcodes"),
     ] = None,
     mem: Annotated[
