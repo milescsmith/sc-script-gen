@@ -240,7 +240,7 @@ def create_scrnaseq_script(
         Path,
         typer.Option(
             "--vdj_index",
-            help="Path to the apppropriate V(D)J reference",
+            help="Path to the appropriate STAR index",
             exists=True,
             dir_okay=True,
             file_okay=False,
@@ -342,6 +342,71 @@ def create_scrnaseq_script(
         typer.Option("--version", callback=version_callback, help="Print version number.", is_eager=True),
     ] = False,
 ):
+    """_summary_
+
+    Parameters
+    ----------
+    samplesheet : Path
+        Path to the bcl-convert samplesheet. Note that because of the way this script determines what library types are
+        present and need to be included based on file names, the sample sheet *MUST* have a format like
+
+        .. table::
+
+        +---------------+------------+------------+----------------+
+        | Sample_ID	    | index      | index2     | Sample_Project |
+        +===============+============+============+================+
+        | sample_1_GEX  | ACAATGTGAA | CGTACCGTTA | Project_1      |
+        +---------------+------------+------------+----------------+
+        | sample_1_TCR  | CCGGCAACTG | CGGTTTAACA | Project_1      |
+        +---------------+------------+------------+----------------+
+        | sample_1_BCR  | CCGGAGGAAG | TGCGGATGTT | Project_1      |
+        +---------------+------------+------------+----------------+
+        | sample_1_prot | CGTTCCACAT | GAGGGAGCCA | Project_1      |
+        +---------------+------------+------------+----------------+
+
+    scripts_out_folder: Path
+        Path to where the generated scripts should be written
+    fastq_path : Path
+        Path to where the FASTQs are stored
+    gex_index_path : Path [default: GEX_REFERENCE_PATH]
+        Path to the appropriate STAR index
+    vdj_index_path : Path [default: VDJ_REFERENCE_PATH]
+        Path to the appropriate STAR index
+    feat_index_ref : Path [default: FEAT_REFERENCE_PATH]
+            Path to the file mapping feature barcodes to feature names
+    create_bam : bool [default: False]
+        Enable or disable BAM file generation
+    expect_cells : int | None [default: None (Use cellranger's automatic cell detection)]
+        Override auto-estimation of cells.
+    force_cells : int | None [default: None]
+        Force pipeline to use this number of cells, bypassing cell detection.
+    include_introns : bool [default: True]
+        Set to false to exclude intronic reads in count
+    no_secondary : bool [default: True]
+        Disable secondary analysis, e.g. clustering.
+    kit_chemistry : Chemistry [default: Chemistry.SC5PHT]
+        10x kit chemistry. Currently, only 'SC5PHT' is supported
+    job_interval : int [default: 2000]
+        How often CellRanger should submit a job to SLURM in miliseconds.
+    max_num_jobs : int [default: 8]
+        How many simultaneous SLRUM jobs each script should be divided into.
+    mem_per_core : int [default: 8]
+        How much memory should be requested for each CPU?
+    mem: int [default: 64]
+        Amount of memory to use for each slurm job
+    cpus: int [default: 8]
+        Amount of cpus to use for each slurm job
+    job_template_path: Path [default: JOB_MANAGER_TEMPLATE_PATH]
+        Path to the slurm cluster template
+    load_cellranger_module : bool [default: True]
+        Does the cellranger-atac module need to be loaded?
+    version: bool [default: False]
+        Print version number
+
+    Return
+    ------
+    None
+    """
     ss_df = read_samplesheet(samplesheet)
 
     if "Sample_Project" not in ss_df.columns:
