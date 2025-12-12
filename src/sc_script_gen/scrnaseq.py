@@ -332,8 +332,8 @@ def create_scrnaseq_script(
     load_cellranger_module: Annotated[
         bool,
         typer.Option(
-            "--load_module",
-            "-l",
+            "--load_module/--no_module",
+            "-l/-n",
             help="Does the cellranger-atac module need to be loaded?",
         ),
     ] = True,
@@ -413,7 +413,7 @@ def create_scrnaseq_script(
         msg = "'Sample_Project' was not found in the samplesheet columns. Is your samplesheet in the correct format?"
         raise ColumnNotFoundError(msg)
 
-    module_line = "module load cellranger/8.0.0\n" if load_cellranger_module else "\n"
+    module_line = "module load cellranger/9.0.0\n" if load_cellranger_module else "\n"
 
     libraries = {
         i: {

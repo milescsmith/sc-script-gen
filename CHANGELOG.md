@@ -1,6 +1,12 @@
 # CHANGELOG
 
-# [2.7.0] - 2026-08-15
+# [2.8.0] - 2025-08-15
+
+## Changed
+
+- Added option to **not** load the `cellranger-atac` or `cellranger` module
+
+# [2.7.0] - 2025-08-15
 
 ## Added
 

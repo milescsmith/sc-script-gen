@@ -4,7 +4,7 @@ build-backend = "pdm.backend"
 
 [project]
 name = "sc_script_gen"
-version = "2.7.1"
+version = "2.8.0"
 description = "Use information from a bcl-convert samplesheet to create scripts to process scrnaseq and asapseq data"
 authors = [
     {name = "Miles Smith", email = "miles-smith@omrf.org"},
