@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# [2.8.1] - 2026-04-03
+
+## Fixed
+
+- Changed the "--load_module/--no_module" to use the underscore instead of dash
+
 # [2.8.0] - 2025-08-15
 
 ## Changed

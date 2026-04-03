@@ -162,7 +162,7 @@ def create_atac_count_script(
     load_cellranger_module: Annotated[
         bool,
         typer.Option(
-            "--load_module/--no-module",
+            "--load_module/--no_module",
             "-l/-n",
             help="Does the cellranger-atac module need to be loaded?",
         ),
